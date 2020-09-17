@@ -38,26 +38,39 @@ namespace rilib{
 class MatchListener{
 public:
 	long matchcount;
-	MatchListener(){
+    bool timeout;
+    float runtime;
+    float maxtime; 
+	MatchListener(float maxtime) :
+        maxtime(maxtime) {
 		matchcount = 0;
+        timeout = false;
+        runtime = 0.0; 
 	}
 	virtual ~MatchListener(){};
 	virtual void match(int n, int* qIDs, int* rIDs)=0;
+    virtual void timedout(float duration) = 0; 
 };
 
 
 class EmptyMatchListener : public MatchListener {
 public:
-	EmptyMatchListener() : MatchListener(){
+    float maxtime; 
+	EmptyMatchListener(float maxtime) : MatchListener(maxtime){
+        
 	}
 	virtual void match(int n, int* qIDs, int* rIDs){
 		matchcount++;
 	};
+    virtual void timedout(float duration) {
+        runtime = duration;
+        timeout = true; 
+    }
 };
 
 class ConsoleMatchListener : public MatchListener {
 public:
-	ConsoleMatchListener() : MatchListener(){
+	ConsoleMatchListener(float maxtime) : MatchListener(maxtime){
 	}
 	virtual void match(int n, int* qIDs, int* rIDs){
 		matchcount++;
@@ -67,6 +80,12 @@ public:
 		}
 		std::cout<< "}\n";
 	}
+
+    virtual void timedout(float duration) {
+        runtime = duration;
+        timeout = true; 
+    }
+    
 };
 
 

@@ -36,8 +36,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "MatchingMachine.h"
 #include "Graph.h"
 #include <set>
+#include <chrono>
 
 namespace rilib{
+
+typedef  std::chrono::system_clock clock_t;
 
 class Solver{
 public:
@@ -105,13 +108,18 @@ public:
 		candidatesSize[0] = rgraph.nof_nodes;
 		candidatesIT[0] = -1;
 
+        auto start_time = clock_t::now(); 
 		int psi = -1;
 		int si = 0;
 		int ci = -1;
 		int sip1;
+        int steps = 0;
+        bool timed_out = false; 
 		while(si != -1){
-			//steps++;
-
+			steps++;
+            if (timed_out) {
+                break; 
+            }
 			if(psi >= si){
 				matched[solution[si]] = false;
 			}
@@ -120,7 +128,6 @@ public:
 			candidatesIT[si]++;
 			while(candidatesIT[si] < candidatesSize[si]){
 				//triedcouples++;
-
 				ci = candidates[si][candidatesIT[si]];
 				solution[si] = ci;
 
@@ -140,9 +147,20 @@ public:
 					ci = -1;
 				}
 				candidatesIT[si]++;
+                
 			}
 
-			if(ci == -1){
+            if ((steps % 1000000)  == 0) { 
+                auto current_time = clock_t::now(); 
+                auto dur = std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time).count();
+
+                if (dur > matchListener.maxtime) { 
+                    timed_out = true;
+                    matchListener.timedout(dur); 
+                }
+            }
+
+            if(ci == -1){
 				psi = si;
 				cmatched[si].clear();
 				si--;
@@ -153,9 +171,9 @@ public:
 
 				if(si == nof_sn -1){
 					matchListener.match(nof_sn, map_state_to_node, solution);
-#ifdef FIRST_MATCH_ONLY
+                    //#ifdef FIRST_MATCH_ONLY
 					si = -1;
-#endif
+                    //#endif
 					psi = si;
 				}
 				else{

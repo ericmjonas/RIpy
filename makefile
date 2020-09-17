@@ -1,16 +1,10 @@
-INCLUDES= -I ./rilib/ -I ./include/
-CC=g++
-CFLAGS=-c -O3
-
-SOURCES= ri3.cpp
-OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=ri36
 
 
-all:	$(SOURCES) $(EXECUTABLE)
+test: all
 
-$(EXECUTABLE): $(OBJECTS)
-	$(CC) $(OBJECTS) -o $@
+clean:
+	rm -Rf *.so build
 
-.cpp.o:
-	$(CC) $(CFLAGS) $< $(INCLUDES) -o $@  
+all: clean
+	python setup.py build_ext --inplace
+#	python test.py
